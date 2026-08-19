@@ -1,0 +1,62 @@
+---
+import type { Proyecto } from '../data/proyectos';
+import { ui, type Idioma } from '../data/ui';
+
+interface Props {
+  proyecto: Proyecto;
+  idioma: Idioma;
+}
+const { proyecto, idioma } = Astro.props;
+const { indice, nombre, stack, descripcion, metricas, enlace } = proyecto;
+const t = ui[idioma];
+---
+{/*
+  El nombre va primero en el DOM para que en móvil —y en un lector de pantalla— se lea
+  el proyecto antes que sus metadatos. En pantallas grandes se recolocan las columnas
+  para conservar la retícula: metadatos a la izquierda, contenido a la derecha.
+*/}
+<article
+  data-parada
+  class="separador-arriba grid grid-cols-1 gap-4 py-8 sm:grid-cols-[170px_minmax(0,1fr)] sm:gap-7 sm:py-9"
+>
+  <div class="sm:col-start-2 sm:row-start-1">
+    <h3 class="m-0 mb-3 text-[19px] font-semibold tracking-[-0.01em] text-titulo sm:text-[21px]">
+      {nombre}
+    </h3>
+
+    <p class="m-0 mb-4 max-w-[78ch] text-[14.5px] leading-[1.6] text-texto">
+      {descripcion[idioma]}
+    </p>
+
+    {
+      enlace && (
+        <a href={enlace.href} class="inline-flex items-center gap-2 font-display text-[15px]">
+          {enlace.vivo && (
+            <span class="h-[7px] w-[7px] shrink-0 rounded-full bg-filete" aria-hidden="true" />
+          )}
+          <span>{enlace.texto}</span>
+          {enlace.vivo && <span class="sr-only">{t.demoEnVivo}</span>}
+        </a>
+      )
+    }
+  </div>
+
+  <div class="sm:col-start-1 sm:row-start-1">
+    <div class="font-display text-[28px] leading-none text-indice sm:text-[34px]">{indice}</div>
+
+    <ul class="mt-3 flex list-none flex-col gap-1 p-0 sm:mt-4">
+      {
+        stack.map((tec) => (
+          <li class="flex items-center gap-2">
+            <span class="h-[7px] w-[7px] shrink-0 bg-filete" aria-hidden="true" />
+            <span class="font-display text-[14px] text-apagado">{tec}</span>
+          </li>
+        ))
+      }
+    </ul>
+
+    <ul class="mt-3 flex list-none flex-col p-0 font-display text-[14px] leading-[1.6] text-filete">
+      {metricas[idioma].map((m) => <li>{m}</li>)}
+    </ul>
+  </div>
+</article>

@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from './Hero.astro';
+import EtiquetaSeccion from './EtiquetaSeccion.astro';
+import FilaProyecto from './FilaProyecto.astro';
+import Contacto from './Contacto.astro';
+import BarrasNavegacion from './BarrasNavegacion.astro';
+import { proyectos } from '../data/proyectos';
+import { ui, type Idioma } from '../data/ui';
+
+interface Props {
+  idioma: Idioma;
+}
+const { idioma } = Astro.props;
+const t = ui[idioma];
+---
+<Base idioma={idioma}>
+  <BarrasNavegacion idioma={idioma} />
+
+  <Hero idioma={idioma} />
+
+  <div class="separador mx-6 sm:mx-10 lg:mx-14"></div>
+
+  <section
+    class="box-border px-6 py-12 sm:px-10 sm:py-16 lg:px-14"
+    aria-labelledby="proyectos"
+    data-parada
+  >
+    <EtiquetaSeccion texto={t.proyectos} id="proyectos" />
+    {proyectos.map((p) => <FilaProyecto proyecto={p} idioma={idioma} />)}
+  </section>
+
+  <div class="separador mx-6 sm:mx-10 lg:mx-14"></div>
+
+  <section
+    class="box-border px-6 py-12 pb-20 sm:px-10 sm:py-16 sm:pb-28 lg:px-14"
+    aria-labelledby="contacto"
+    data-parada
+  >
+    <EtiquetaSeccion texto={t.contacto} id="contacto" />
+    <Contacto />
+  </section>
+</Base>

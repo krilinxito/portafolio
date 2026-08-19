@@ -1,0 +1,21 @@
+---
+import Glifo from './Glifo.astro';
+
+const enlaces = [
+  { tipo: 'cuadrado' as const, texto: 'barryallen4207@gmail.com', href: 'mailto:barryallen4207@gmail.com' },
+  { tipo: 'circulo' as const, texto: 'github.com/krilinxito', href: 'https://github.com/krilinxito' },
+  { tipo: 'rombo' as const, texto: 'linkedin.com/in/maximiliano-gomez-mallo', href: 'https://www.linkedin.com/in/maximiliano-gomez-mallo' },
+];
+---
+<ul class="flex list-none flex-col gap-4 p-0 font-display text-[16px] sm:text-[18px]">
+  {
+    enlaces.map((e) => (
+      <li class="flex items-center gap-3.5">
+        <Glifo tipo={e.tipo} />
+        <a href={e.href} class="w-fit break-all">
+          {e.texto}
+        </a>
+      </li>
+    ))
+  }
+</ul>

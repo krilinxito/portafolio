@@ -1,0 +1,21 @@
+---
+import { ui, type Idioma } from '../data/ui';
+
+interface Props {
+  idioma: Idioma;
+}
+const { idioma } = Astro.props;
+const otro = ui[idioma].otroIdioma;
+---
+<nav aria-label="Idioma">
+  <a
+    href={otro.href}
+    hreflang={otro.codigo}
+    class="border-0 px-2 py-1 font-display text-[18px] tracking-[0.08em] text-apagado hover:text-titulo"
+  >
+    <span class="text-filete" aria-hidden="true">[</span>{otro.etiqueta}<span
+      class="text-filete"
+      aria-hidden="true">]</span
+    >
+  </a>
+</nav>

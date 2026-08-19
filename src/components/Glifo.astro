@@ -1,0 +1,18 @@
+---
+// Las tres marcas geométricas del diseño: cuadrado, círculo y rombo.
+interface Props {
+  tipo: 'cuadrado' | 'circulo' | 'rombo';
+  tam?: number;
+}
+const { tipo, tam = 14 } = Astro.props;
+const estilo = `width:${tam}px;height:${tam}px`;
+---
+{tipo === 'cuadrado' && <span class="shrink-0 bg-filete" style={estilo} aria-hidden="true"></span>}
+{tipo === 'circulo' && <span class="shrink-0 rounded-full bg-titulo" style={estilo} aria-hidden="true"></span>}
+{tipo === 'rombo' && (
+  <span
+    class="box-border shrink-0 rotate-45 border-2 border-filete"
+    style={estilo}
+    aria-hidden="true"
+  ></span>
+)}

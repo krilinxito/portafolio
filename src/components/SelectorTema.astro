@@ -1,0 +1,95 @@
+---
+import type { Idioma } from '../data/ui';
+
+interface Props {
+  idioma: Idioma;
+}
+const { idioma } = Astro.props;
+const etiqueta = idioma === 'es' ? 'Cambiar entre modo día y noche' : 'Toggle day and night mode';
+---
+<button type="button" id="tema" class="tema" aria-label={etiqueta}>
+  {/* Mismo trazo de 1,5 que los iconos de contacto, para que se lean como un set. */}
+  <svg
+    class="sol"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.6"
+    stroke-linecap="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="4.2" />
+    <path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7" />
+  </svg>
+  <svg
+    class="luna"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z" />
+  </svg>
+</button>
+
+<style>
+  .tema {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    padding: 0;
+    background: none;
+    color: var(--color-apagado);
+    cursor: pointer;
+    transition: color 140ms ease;
+  }
+
+  .tema:hover {
+    color: var(--color-filete);
+  }
+
+  .tema:focus-visible {
+    outline: 2px solid var(--color-filete);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* De noche se ofrece el sol; de día, la luna. */
+  .sol { display: block; }
+  .luna { display: none; }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-tema='noche']) .sol { display: none; }
+    :root:not([data-tema='noche']) .luna { display: block; }
+  }
+
+  :root[data-tema='dia'] .sol { display: none; }
+  :root[data-tema='dia'] .luna { display: block; }
+  :root[data-tema='noche'] .sol { display: block; }
+  :root[data-tema='noche'] .luna { display: none; }
+</style>
+
+<script>
+  document.getElementById('tema')?.addEventListener('click', () => {
+    const raiz = document.documentElement;
+    const sistemaEsClaro = window.matchMedia('(prefers-color-scheme: light)').matches;
+    const actual = raiz.dataset.tema ?? (sistemaEsClaro ? 'dia' : 'noche');
+    const nuevo = actual === 'dia' ? 'noche' : 'dia';
+    raiz.dataset.tema = nuevo;
+    try {
+      localStorage.setItem('tema', nuevo);
+    } catch {
+      /* modo privado: el tema dura lo que la pestaña */
+    }
+  });
+</script>

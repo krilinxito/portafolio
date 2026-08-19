@@ -1,0 +1,85 @@
+---
+import { ui, type Idioma } from '../data/ui';
+
+interface Props {
+  idioma: Idioma;
+}
+const { idioma } = Astro.props;
+const etiquetas =
+  idioma === 'es'
+    ? { arriba: 'Volver al inicio', abajo: 'Ir a la siguiente sección' }
+    : { arriba: 'Back to top', abajo: 'Go to next section' };
+---
+{/* Cruzan toda la pantalla, no solo la columna: van fijas al viewport. */}
+<button type="button" class="barra barra-arriba" data-ir="inicio" aria-label={etiquetas.arriba}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7" />
+  </svg>
+</button>
+
+<button type="button" class="barra barra-abajo" data-ir="siguiente" aria-label={etiquetas.abajo}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 5v14M5 12l7 7 7-7" />
+  </svg>
+</button>
+
+<style>
+  .barra {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    border: 0;
+    padding: 0;
+    background: var(--color-fondo);
+    color: var(--color-filete);
+    cursor: pointer;
+    transition: color 140ms ease, background-color 140ms ease;
+  }
+
+  .barra-arriba {
+    top: 0;
+    border-bottom: 1px solid color-mix(in oklab, var(--color-filete) 30%, transparent);
+  }
+
+  .barra-abajo {
+    bottom: 0;
+    border-top: 1px solid color-mix(in oklab, var(--color-filete) 30%, transparent);
+  }
+
+  .barra:hover {
+    color: var(--color-titulo);
+    background: color-mix(in oklab, var(--color-fondo) 82%, var(--color-filete));
+  }
+
+  .barra:focus-visible {
+    outline: 2px solid var(--color-filete);
+    outline-offset: -3px;
+  }
+</style>
+
+<script>
+  const irA = (y: number) => {
+    const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: y, behavior: quieto ? 'auto' : 'smooth' });
+  };
+
+  document.querySelector('[data-ir="inicio"]')?.addEventListener('click', () => irA(0));
+
+  document.querySelector('[data-ir="siguiente"]')?.addEventListener('click', () => {
+    // Paradas: el hero, cada proyecto y el contacto.
+    const paradas = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-parada]')
+    ).map((el) => el.getBoundingClientRect().top + window.scrollY - 34);
+
+    const actual = window.scrollY;
+    const siguiente = paradas.find((y) => y > actual + 8);
+
+    // Si ya no queda ninguna, baja al final del sitio.
+    irA(siguiente ?? document.documentElement.scrollHeight);
+  });
+</script>

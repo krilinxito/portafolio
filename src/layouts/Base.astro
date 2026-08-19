@@ -1,0 +1,66 @@
+---
+import '../styles/global.css';
+import SelectorIdioma from '../components/SelectorIdioma.astro';
+import SelectorTema from '../components/SelectorTema.astro';
+import { ui, type Idioma } from '../data/ui';
+
+interface Props {
+  idioma: Idioma;
+}
+const { idioma } = Astro.props;
+const t = ui[idioma];
+---
+<!doctype html>
+<html lang={t.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <script is:inline>
+      // Estampa el tema antes del primer pintado: sin esto se ve un fotograma
+      // con el tema equivocado en cada carga.
+      try {
+        var t = localStorage.getItem('tema');
+        if (t === 'dia' || t === 'noche') document.documentElement.dataset.tema = t;
+      } catch (e) {}
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{t.titulo}</title>
+    <meta name="description" content={t.descripcionMeta} />
+    <meta name="author" content="Maximiliano Gómez Mallo" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1A1C20" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFFFFF" />
+
+    <link rel="alternate" hreflang="es" href="/" />
+    <link rel="alternate" hreflang="en" href="/en/" />
+    <link rel="alternate" hreflang="x-default" href="/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={t.titulo} />
+    <meta property="og:description" content={t.descripcionMeta} />
+    <meta property="og:locale" content={idioma === 'es' ? 'es_BO' : 'en_US'} />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="preload" href="/fonts/vt323-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href="/fonts/public-sans-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
+  </head>
+
+  <body>
+    {/* La columna central tapa el grano; las bandas laterales lo dejan ver. */}
+    <div
+      class="relative z-1 min-h-screen w-full border-filete/70 bg-fondo md:mx-[10%] md:w-auto md:border-r md:border-l"
+    >
+      <div class="absolute top-4 right-5 z-10 flex items-center gap-3 sm:top-6 sm:right-8">
+        <SelectorTema idioma={idioma} />
+        <SelectorIdioma idioma={idioma} />
+      </div>
+      <slot />
+    </div>
+  </body>
+</html>

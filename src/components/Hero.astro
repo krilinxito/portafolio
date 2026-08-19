@@ -1,0 +1,230 @@
+---
+import EnlacesContacto from './EnlacesContacto.astro';
+import { ui, intro, type Idioma } from '../data/ui';
+
+interface Props {
+  idioma: Idioma;
+}
+const { idioma } = Astro.props;
+const t = ui[idioma];
+
+/*
+  Tiempos de la animación, calculados aquí para poder inyectarlos como
+  animation-delay literales. El texto siempre está en el DOM: sólo se revela.
+  Por eso no puede haber desplazamiento de layout.
+*/
+const MS_POR_CARACTER = 55;
+const PAUSA_ANTES_DE_SALIDA = 200;
+const PAUSA_ENTRE_LINEAS = 380;
+
+let reloj = 300;
+const lineas = t.terminal.map((linea) => {
+  const n = linea.prompt.length;
+  const duracionEscritura = n * MS_POR_CARACTER;
+  const inicio = reloj;
+  const apareceSalida = inicio + duracionEscritura + PAUSA_ANTES_DE_SALIDA;
+  reloj = apareceSalida + PAUSA_ENTRE_LINEAS;
+  return { ...linea, n, duracionEscritura, inicio, apareceSalida };
+});
+const finAnimacion = reloj;
+
+/*
+  Las reglas por línea se generan con números literales en vez de usar
+  steps(var(--n)): la sustitución de var() dentro de steps() es una zona gris
+  del estándar con historial de bugs entre motores, y el hero no es el lugar
+  donde arriesgarlo.
+*/
+const reglasAnimacion = `@media (prefers-reduced-motion: no-preference) {
+${lineas
+  .map(
+    (l, i) => `  .terminal .l${i} .cmd {
+    width: ${l.n}ch;
+    border-right: 0.55ch solid transparent;
+    animation:
+      escribir ${l.duracionEscritura}ms steps(${l.n}) ${l.inicio}ms backwards,
+      vida-cursor ${l.apareceSalida - l.inicio}ms linear ${l.inicio}ms forwards;
+  }
+  .terminal .l${i} .salida {
+    opacity: 0;
+    animation: aparecer 1ms linear ${l.apareceSalida}ms forwards;
+  }`
+  )
+  .join('\n')}
+  .terminal .cursor-final {
+    opacity: 0;
+    animation:
+      aparecer 1ms linear ${finAnimacion}ms forwards,
+      parpadeo 1.05s steps(1) ${finAnimacion}ms infinite;
+  }
+}`;
+---
+<section class="box-border px-6 pt-14 pb-12 sm:px-10 sm:pt-20 sm:pb-16 lg:px-14">
+  <h1 class="nombre m-0 mb-5 font-display leading-[1.02] tracking-[0.01em] text-titulo">
+    Maximiliano<br class="corte" /> Gómez Mallo
+  </h1>
+
+  <EnlacesContacto clase="mb-7" />
+
+  <p class="m-0 mb-8 text-[15px] leading-[1.6] text-texto sm:text-[16px] lg:text-[17px]">
+    {intro[idioma]}
+  </p>
+
+  <div
+    class="terminal bg-banda py-6 font-display text-[16px] leading-[1.8] sm:py-7 sm:text-[19px]"
+    role="img"
+    aria-label={t.terminal.map((l) => `${l.prompt}: ${l.salida}`).join('. ')}
+  >
+    <div class="interior px-6 sm:px-10 md:mx-[10%] lg:px-14">
+    {
+      lineas.map((linea, i) => (
+        <div class={`l${i}`}>
+          <div class="text-filete">
+            <span aria-hidden="true">&gt; </span>
+            <span class="cmd">{linea.prompt}</span>
+          </div>
+          <div class="salida pl-4 text-apagado">{linea.salida}</div>
+        </div>
+      ))
+    }
+    <span class="cursor-final" aria-hidden="true"></span>
+    </div>
+  </div>
+</section>
+
+<style is:inline set:html={reglasAnimacion}></style>
+
+<style>
+  /*
+    VT323 avanza 0,4em por carácter, así que "Maximiliano Gómez Mallo" mide
+    exactamente 9,2em. De ahí sale el cuerpo que hace que la línea toque el
+    borde: ancho_disponible / 9,2.
+  */
+  /*
+    En móvil corta tras "Maximiliano": la línea larga pasa a ser "Gómez Mallo"
+    (11 caracteres = 4,51em con el tracking), así que cabe mucho más cuerpo.
+  */
+  .nombre {
+    font-size: min(calc(22.2vw - 10.6px), 54px);
+  }
+
+  @media (min-width: 768px) {
+    .corte {
+      display: none;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .nombre {
+      /* Columna = 80vw menos relleno, dividido entre 9,43em (9,2 de avance + 0,23 de tracking). */
+      white-space: nowrap;
+      font-size: min(calc(8.483vw - 8.48px), 112px);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .nombre {
+      font-size: min(calc(8.483vw - 11.88px), 112px);
+    }
+  }
+
+  /*
+    Estado base = todo visible. La animación vive dentro de
+    prefers-reduced-motion: no-preference, así que quien pida menos movimiento
+    —o no tenga CSS animations— ve la terminal completa de una vez.
+  */
+  /*
+    La banda rompe la columna y cruza la pantalla entera: a su altura no hay
+    filetes verticales, así se funde con el grano de los laterales.
+    El truco de 100vw + margen negativo la saca del contenedor centrado.
+  */
+  .terminal {
+    position: relative;
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    overflow: hidden;
+  }
+
+  /* Mismo ruido que las bandas laterales, recortado por el overflow. */
+  .terminal::before {
+    content: '';
+    position: absolute;
+    inset: -25%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: var(--grano-banda);
+    background-image: var(--grano-imagen);
+    will-change: transform;
+  }
+
+  .interior {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .terminal::before {
+      animation: vibrar-grano 0.9s steps(1) infinite;
+    }
+  }
+
+  .cmd {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: bottom;
+    /*
+      Tailwind pone box-sizing: border-box en todo, así que un width en ch
+      incluiría el borde que hace de cursor y recortaría medio carácter.
+    */
+    box-sizing: content-box;
+  }
+
+  .cursor-final {
+    display: inline-block;
+    width: 0.55ch;
+    height: 1em;
+    background: var(--color-filete);
+    vertical-align: text-bottom;
+    animation: parpadeo 1.05s steps(1) infinite;
+  }
+
+  @keyframes parpadeo {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /*
+    El reset global de movimiento reducido deja el parpadeo en 0.01ms; con
+    steps(1) eso congela el cursor en un fotograma al azar y la mitad de las
+    veces queda invisible. Aquí se apaga del todo y se fija visible.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    .cursor-final {
+      animation: none !important;
+      opacity: 1 !important;
+    }
+  }
+
+  @keyframes escribir {
+    from {
+      width: 0;
+    }
+  }
+
+  @keyframes vida-cursor {
+    from,
+    99.9% {
+      border-right-color: var(--color-filete);
+    }
+    to {
+      border-right-color: transparent;
+    }
+  }
+
+  @keyframes aparecer {
+    to {
+      opacity: 1;
+    }
+  }
+</style>
