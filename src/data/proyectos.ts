@@ -44,9 +44,9 @@ export const proyectos: Proyecto[] = [
       en: ['6 outlets', 'cosine > 0.65 + Union-Find', '2 daily jobs'],
     },
     enlace: {
-      texto: 'github.com/krilinxito/noticias-bolivia',
-      href: 'https://github.com/krilinxito/noticias-bolivia',
-      vivo: false,
+      texto: 'observador-digital.maxi42.space',
+      href: 'https://observador-digital.maxi42.space',
+      vivo: true,
     },
   },
   {
